@@ -1,9 +1,12 @@
 {
   "name": "skills",
   "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "type": "module",
-  "module": "index.ts",
   "scripts": {
+    "build": "bun run --filter '*' build",
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
     "lint": "oxlint",
