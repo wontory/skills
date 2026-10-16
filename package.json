@@ -1,0 +1,21 @@
+{
+  "name": "skills",
+  "private": true,
+  "type": "module",
+  "module": "index.ts",
+  "scripts": {
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "typecheck": "bun check"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "oxfmt": "^0.73.0",
+    "oxlint": "^1.88.0"
+  },
+  "peerDependencies": {
+    "typescript": "^7"
+  }
+}
