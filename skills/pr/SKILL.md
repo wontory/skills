@@ -1,11 +1,11 @@
 ---
 name: pr
-description: Use when the user asks to open, create, or write a pull request or PR description, or says "PR 만들어줘", after commits on a feature branch are ready for review.
+description: Use when the user asks to open, create, or write a pull request or PR description, or after commits on a feature branch are ready for review.
 ---
 
 # Pull Request
 
-Open a GitHub pull request with the `gh` CLI. Write the title and body in Korean.
+Open a GitHub pull request with the `gh` CLI. Write the title and body in English.
 
 ## Steps
 
@@ -19,22 +19,22 @@ Open a GitHub pull request with the `gh` CLI. Write the title and body in Korean
 
 ## Title
 
-Conventional Commits format, written in Korean: `<type>(<scope>): <subject>`, about 50 characters, no trailing period. Keep `type` in English. For a single-commit PR, reuse the commit subject. The subject must say concretely what the PR does; avoid vague words like "수정", "업데이트", "작업".
+Conventional Commits format, written in English: `<type>(<scope>): <subject>`, about 50 characters, no trailing period. Keep `type` in English. For a single-commit PR, reuse the commit subject. The subject must say concretely what the PR does; avoid vague words like "update", "fix stuff", "changes".
 
 ## Body
 
-Write in Korean. Keep code identifiers, commands, and proper nouns as-is.
+Write in English. Keep code identifiers, commands, and proper nouns as-is.
 
 ```markdown
-## 요약
+## Summary
 
 <1-3 bullets: what changed and why>
 
-## 변경 사항
+## Changes
 
 <notable changes grouped by area; skip trivia>
 
-## 테스트
+## Testing
 
 - [ ] <how it was verified, or how a reviewer can verify>
 
