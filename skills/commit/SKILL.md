@@ -1,11 +1,11 @@
 ---
 name: commit
-description: Use when the user asks to commit changes, write a commit message, or says "커밋해줘", or when finished work in a git repo needs to be committed.
+description: Use when the user asks to commit changes, write a commit message, or when finished work in a git repo needs to be committed.
 ---
 
 # Commit
 
-Split changes into small logical units and commit each as a Conventional Commit written in Korean.
+Split changes into small logical units and commit each as a Conventional Commit written in English.
 
 ## Steps
 
@@ -39,10 +39,10 @@ If one file mixes unrelated changes, split by hunk with `git add -p`. Order comm
 
 - `type`: `feat` `fix` `docs` `style` `refactor` `perf` `test` `build` `ci` `chore` `revert` (keep in English, lowercase)
 - `scope`: the affected package or module (optional)
-- Write the **subject and body in Korean**. Keep code identifiers, commands, and proper nouns as-is.
-- The subject must make the staged changes clear on its own, without reading the diff. About 50 characters, no trailing period. Avoid vague words like "수정", "업데이트", "작업".
-  - Bad: `fix: 버그 수정` / `chore: 설정 변경`
-  - Good: `fix(cli): 윈도우에서 npx 인자 따옴표가 이스케이프되지 않는 문제 수정`
+- Write the **subject and body in English**, with the subject in the imperative mood and lowercase (e.g. `add`, `fix`, not `added`, `fixes`). Keep code identifiers, commands, and proper nouns as-is.
+- The subject must make the staged changes clear on its own, without reading the diff. About 50 characters, no trailing period. Avoid vague words like "update", "fix stuff", "changes".
+  - Bad: `fix: fix bug` / `chore: change config`
+  - Good: `fix(cli): escape quoted npx args on Windows`
 - Add a body when the subject isn't enough (reason, impact, alternatives). Separate it from the subject with a blank line.
 - For breaking changes use `type!:` and a `BREAKING CHANGE: <description>` footer.
 - Pass multi-line messages with a heredoc, not repeated `-m` flags.
