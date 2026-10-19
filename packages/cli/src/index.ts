@@ -7,8 +7,8 @@ import { FREE_SOURCES, PAID_SOURCES, type PaidSource } from './sources.ts'
 const cli = cac('wontory-skills')
 cli
   .option('-g, --global', 'Install skills globally (user-level)')
-  .option('-a, --agent <agents>', 'Target agents', { default: '*' })
-  .option('-y, --yes', 'Never prompt; skip paid skills without a token')
+  .option('-a, --agent <agents>', 'Target agents (default: pick interactively, or all with --yes)')
+  .option('-y, --yes', 'Never prompt; install all free skills, skip paid skills without a token')
   .option('--skip-paid', 'Skip paid skills entirely')
   .option('--animationsdev-token <token>', 'animations.dev token')
   .option('--aiforui-token <token>', 'aiforui.dev token')
@@ -61,7 +61,13 @@ intro('wontory-skills')
 const tokens = new Map<string, string | undefined>()
 for (const source of PAID_SOURCES) tokens.set(source.name, await resolveToken(source))
 
-const scopeArgs = [...(options.global ? ['-g'] : []), '-s', '*', '-a', options.agent, '-y']
+// Interactive: let `skills add` show its own skill/agent pickers. Otherwise install everything.
+const interactive = !options.yes && process.stdin.isTTY
+const scopeArgs = [
+  ...(options.global ? ['-g'] : []),
+  ...(options.agent ? ['-a', options.agent] : interactive ? [] : ['-a', '*']),
+  ...(interactive ? [] : ['-s', '*', '-y']),
+]
 const results: { name: string; status: 'ok' | 'failed' | 'skipped' }[] = []
 
 for (const source of FREE_SOURCES) {
