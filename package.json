@@ -7,13 +7,18 @@
   "type": "module",
   "scripts": {
     "build": "bun run --filter '*' build",
+    "changeset": "changeset",
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
-    "typecheck": "bun check"
+    "release": "bun run build && changeset publish",
+    "typecheck": "bun check",
+    "version": "changeset version && bun install --lockfile-only"
   },
   "devDependencies": {
+    "@changesets/changelog-github": "^1.0.1",
+    "@changesets/cli": "^3.0.3",
     "@commitlint/cli": "^21.2.3",
     "@commitlint/config-conventional": "^21.2.3",
     "@types/bun": "latest",
