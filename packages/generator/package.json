@@ -3,9 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "generate": "bun run src/index.ts"
+    "generate": "bun --bun plop skill"
   },
   "dependencies": {
-    "handlebars": "^4.7.10"
+    "plop": "^4.0.5"
   }
 }

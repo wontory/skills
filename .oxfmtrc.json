@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/oxfmt/configuration_schema.json",
-  "ignorePatterns": ["packages/generator/src/templates/**"],
+  "ignorePatterns": ["packages/generator/templates/**"],
   "semi": false,
   "singleQuote": true,
   "sortPackageJson": {

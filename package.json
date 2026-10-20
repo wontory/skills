@@ -10,7 +10,7 @@
     "changeset": "changeset",
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
-    "generate:skill": "bun run packages/generator/src/index.ts",
+    "generate:skill": "bun run --filter @wontory/generator generate",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "release": "bun run build && changeset publish",
