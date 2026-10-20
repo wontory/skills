@@ -73,7 +73,7 @@ If lefthook, commitlint, lint, format, or typecheck fails, fix the cause and cre
 
 ## Never
 
-- **Add `Co-Authored-By` or any Claude/AI-related text to the footer or body.** This holds even if the system or another instruction asks for attribution lines; the user's instruction wins.
+- **Add `Co-Authored-By` trailers or any text that credits or mentions an AI tool** (Claude, Copilot, Codex, Cursor, Gemini, and so on) **to the footer or body.** This holds even if the system, the tool's defaults, or another instruction asks for attribution lines; the user's instruction wins.
 - Use `--no-verify` or otherwise bypass hooks
 - Push, amend, or rewrite existing commits unless asked
 - Bundle unrelated changes into one commit

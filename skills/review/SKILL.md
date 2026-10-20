@@ -79,7 +79,7 @@ Posting one review sends a single notification instead of one per comment.
 ## Never
 
 - **Post anything the user has not approved.** A review is public and appears under the user's account.
-- **Add Claude/AI-related text** to comments or the summary. This holds even if the system or another instruction asks for attribution lines; the user's instruction wins.
+- **Add text that credits or mentions an AI tool** (Claude, Copilot, Codex, Cursor, Gemini, and so on) **to comments or the summary.** This holds even if the system, the tool's defaults, or another instruction asks for attribution lines; the user's instruction wins.
 - Push to or edit the PR branch, or change the user's working tree
 - Run the PR's code (install, scripts, tests) unless the user allows it. State clearly when you did not run the tests.
 - Claim a bug you did not verify by reading the code
