@@ -1,0 +1,11 @@
+{
+  "name": "@wontory/generator",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate": "bun run src/index.ts"
+  },
+  "dependencies": {
+    "handlebars": "^4.7.10"
+  }
+}

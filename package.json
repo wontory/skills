@@ -10,6 +10,7 @@
     "changeset": "changeset",
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
+    "generate:skill": "bun run packages/generator/src/index.ts",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "release": "bun run build && changeset publish",
