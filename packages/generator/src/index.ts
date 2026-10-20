@@ -4,7 +4,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { parseArgs } from 'node:util'
 
-const templatePath = join(import.meta.dir, '..', 'templates', 'skill.hbs')
+const templatePath = join(import.meta.dir, 'templates', 'skill.hbs')
 const skillsDir = join(import.meta.dir, '..', '..', '..', 'skills')
 const usage = `Usage: bun run generate:skill <name> [--description <text>] [--summary <text>]
 
@@ -65,6 +65,11 @@ const content = render({
   mainRule: '<The one rule that must never be broken, and why.>',
   otherRule: '<Another action to avoid.>',
 })
+
+// A formatter can silently rewrite `{{name}}` into `{ { name } }`, which renders as literal text.
+if (!content.startsWith(`---\nname: ${name}\n`)) {
+  fail('The rendered skill is malformed. Check that src/templates/skill.hbs was not reformatted.')
+}
 
 await mkdir(dir, { recursive: true })
 await writeFile(join(dir, 'SKILL.md'), content)
