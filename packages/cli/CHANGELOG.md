@@ -1,5 +1,15 @@
 # @wontory/skills
 
+## 0.4.0
+
+### Minor Changes
+
+- [#5](https://github.com/wontory/skills/pull/5) [`0bc4747`](https://github.com/wontory/skills/commit/0bc4747b82d800abd79b07b927e380953d240acc) Thanks [@wontory](https://github.com/wontory)! - Add the `review` skill for reviewing someone else's PR with inline cremoji comments, and the `self-review` skill for explaining your own PR's context to yourself and its reviewers.
+
+### Patch Changes
+
+- [#5](https://github.com/wontory/skills/pull/5) [`0bc4747`](https://github.com/wontory/skills/commit/0bc4747b82d800abd79b07b927e380953d240acc) Thanks [@wontory](https://github.com/wontory)! - The `commit` and `pr` skills now follow the repo's own conventions: commitlint config, commit template, PR templates in more locations, and a non-Conventional PR title format when the repo uses one.
+
 ## 0.3.0
 
 ### Minor Changes
