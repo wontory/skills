@@ -15,7 +15,7 @@ Review a pull request against the whole codebase, not just its diff, and post th
 4. Review in the worktree (see "What to look for"). Read the diff first, then follow the changed symbols outward: callers, callees, related tests, neighboring modules.
 5. Skip anything already raised in existing reviews or comments.
 6. Draft the comments and the review (see "Comments"), then show the draft to the user. Wait for approval or edits.
-7. Submit the approved draft as **one** review (see "Submitting"). Return the review URL.
+7. Submit the approved draft as **one** review (see "Posting"). Return the review URL.
 8. Remove the worktree: `git worktree remove --force <tmp-dir>`. Do this even if the review is cancelled.
 
 ## What to look for
@@ -57,7 +57,7 @@ Decide it from the emojis in the draft, and show it to the user with the draft:
 
 GitHub does not allow approving or requesting changes on your own PR. If the PR author is the current user, use `COMMENT`.
 
-## Submitting
+## Posting
 
 Re-check that `headRefOid` has not changed since step 1; if it has, tell the user and re-review the new commits. Write the review to a JSON file and post it once:
 

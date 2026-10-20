@@ -5,16 +5,11 @@ description: Use when the user wants to understand the context of their own pull
 
 # Pull Request Self-Review
 
-This skill has two goals, in this order:
-
-1. **The user understands their own PR.** With AI-assisted work the author may not know why the code is the way it is. Explain how the change fits together and why the non-obvious parts are written as they are, until the user can stand behind it.
-2. **Reviewers get that same context.** Turn the confirmed explanation into a short guide on the PR: where to start and why the key decisions were made.
-
-The second goal depends on the first: nothing goes on the PR until the user has understood and confirmed it.
+Help the user understand their own PR first, since with AI-assisted work the author may not know why the code is the way it is, then pass the same context to reviewers as a short guide: where to start and why the key decisions were made. Nothing goes on the PR until the user has understood and confirmed it.
 
 ## Steps
 
-1. Resolve the PR from the number or URL, or from the current branch. Read it with `gh pr view <n> --json title,body,author,baseRefName,headRefOid,files,commits,comments,reviews`. Check the author with `gh api user -q .login`; for someone else's PR, use the `review` skill instead.
+1. Resolve the PR from the number or URL, or from the current branch. Read it with `gh pr view <n> --json title,body,author,baseRefName,headRefOid,files,commits,comments,reviews`.
 2. If the PR branch is not the current checkout, use an isolated worktree outside the repo (`git fetch origin pull/<n>/head`, `git worktree add --detach <tmp-dir> FETCH_HEAD`) and remove it at the end.
 3. Collect the **why** from every source available and note which one each fact came from:
    - the current conversation (requirements, rejected approaches, decisions)

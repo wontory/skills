@@ -12,11 +12,11 @@ Open a GitHub pull request with the `gh` CLI. Write the title and body in the la
 1. Check state in parallel: `git status --short --branch`, `git branch --show-current`, `gh repo view --json defaultBranchRef -q .defaultBranchRef.name`.
 2. Never open a PR from the default branch. Create a feature branch first (use the `commit` skill for uncommitted work).
 3. Understand the **whole** branch, not just the last commit: `git log <base>..HEAD --oneline` and `git diff <base>...HEAD`.
-   Decide the language (see "Language"); run `gh pr list --state all --limit 20 --json title` only if no language is set explicitly.
-4. Push with upstream if needed: `git push -u origin HEAD`. Never force-push unless asked.
-5. If `.github/pull_request_template.md` exists, fill it in instead of using the body format below.
-6. Create the PR with `gh pr create --base <base> --title ... --body "$(cat <<'EOF' ... EOF)"`. Add `--draft` if the user wants a draft.
-7. Return the PR URL.
+4. Decide the title and body language (see "Language").
+5. Push with upstream if needed: `git push -u origin HEAD`. Never force-push unless asked.
+6. If `.github/pull_request_template.md` exists, fill it in instead of using the body format below.
+7. Create the PR with `gh pr create --base <base> --title ... --body "$(cat <<'EOF' ... EOF)"`. Add `--draft` if the user wants a draft.
+8. Return the PR URL.
 
 ## Language
 
