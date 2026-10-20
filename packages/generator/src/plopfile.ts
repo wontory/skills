@@ -3,9 +3,9 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { NodePlopAPI } from 'plop'
 
-const root = dirname(fileURLToPath(import.meta.url))
-const template = join(root, 'src', 'templates', 'skill.hbs')
-const skillsDir = join(root, '..', '..', 'skills')
+const srcDir = dirname(fileURLToPath(import.meta.url))
+const template = join(srcDir, 'templates', 'skill.hbs')
+const skillsDir = join(srcDir, '..', '..', '..', 'skills')
 
 export default function (plop: NodePlopAPI) {
   plop.setHelper('title', (name: string) =>
@@ -52,8 +52,8 @@ export default function (plop: NodePlopAPI) {
       },
       {
         type: 'add',
-        path: '../../skills/{{name}}/SKILL.md',
-        templateFile: 'src/templates/skill.hbs',
+        path: '../../../skills/{{name}}/SKILL.md',
+        templateFile: 'templates/skill.hbs',
       },
     ],
   })
