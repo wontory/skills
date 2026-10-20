@@ -3,9 +3,9 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { NodePlopAPI } from 'plop'
 
-const srcDir = dirname(fileURLToPath(import.meta.url))
-const template = join(srcDir, 'templates', 'skill.hbs')
-const skillsDir = join(srcDir, '..', '..', '..', 'skills')
+const root = dirname(fileURLToPath(import.meta.url))
+const template = join(root, 'templates', 'skill.hbs')
+const skillsDir = join(root, '..', '..', 'skills')
 
 export default function (plop: NodePlopAPI) {
   plop.setHelper('title', (name: string) =>
@@ -46,13 +46,13 @@ export default function (plop: NodePlopAPI) {
       // A formatter can rewrite `{{name}}` into `{ { name } }`, which renders as literal text.
       () => {
         if (!readFileSync(template, 'utf8').startsWith('---\nname: {{name}}\n')) {
-          throw new Error('src/templates/skill.hbs is malformed. Was it reformatted?')
+          throw new Error('templates/skill.hbs is malformed. Was it reformatted?')
         }
         return 'Template is intact'
       },
       {
         type: 'add',
-        path: '../../../skills/{{name}}/SKILL.md',
+        path: '../../skills/{{name}}/SKILL.md',
         templateFile: 'templates/skill.hbs',
       },
     ],

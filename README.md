@@ -12,7 +12,7 @@ To type check:
 bun check
 ```
 
-To create a new skill from the template (`packages/generator/src/templates/skill.hbs`):
+To create a new skill from the template (`packages/generator/templates/skill.hbs`):
 
 ```bash
 bun run generate:skill
