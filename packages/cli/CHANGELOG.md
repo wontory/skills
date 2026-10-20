@@ -1,5 +1,11 @@
 # @wontory/skills
 
+## 0.4.1
+
+### Patch Changes
+
+- [#8](https://github.com/wontory/skills/pull/8) [`081e86b`](https://github.com/wontory/skills/commit/081e86b5b54ddc5182d78de12b89e49113e598dd) Thanks [@wontory](https://github.com/wontory)! - The `commit`, `pr`, `review`, and `self-review` skills now name the common AI tools (Claude, Copilot, Codex, Cursor, Gemini) in their "no attribution" rule, so the rule holds for any agent, not only Claude.
+
 ## 0.4.0
 
 ### Minor Changes
