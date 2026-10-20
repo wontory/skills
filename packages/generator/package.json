@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "generate": "plop skill"
+    "generate": "bun --bun plop skill"
   },
   "dependencies": {
     "plop": "^4.0.5"

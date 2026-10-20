@@ -1,16 +1,17 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import type { NodePlopAPI } from 'plop'
 
 const root = dirname(fileURLToPath(import.meta.url))
 const template = join(root, 'src', 'templates', 'skill.hbs')
 const skillsDir = join(root, '..', '..', 'skills')
 
-export default function (plop) {
-  plop.setHelper('title', (name) =>
+export default function (plop: NodePlopAPI) {
+  plop.setHelper('title', (name: string) =>
     name
       .split('-')
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' '),
   )
 
@@ -21,7 +22,7 @@ export default function (plop) {
         type: 'input',
         name: 'name',
         message: 'Skill name (kebab-case):',
-        validate: (name) => {
+        validate: (name: string) => {
           if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(name)) {
             return 'Use lowercase letters, digits, and single hyphens.'
           }
