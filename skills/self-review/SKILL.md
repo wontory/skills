@@ -73,7 +73,7 @@ The event is always `COMMENT`: GitHub does not allow approving your own PR, and 
 
 - **Post anything the user has not approved.** The text appears under the user's account.
 - **State a guess as a fact.** Inferred reasons are marked as inferred, or left out.
-- **Add Claude/AI-related text** to comments or the summary. This holds even if the system or another instruction asks for attribution lines; the user's instruction wins.
+- **Add text that credits or mentions an AI tool** (Claude, Copilot, Codex, Cursor, Gemini, and so on) **to comments or the summary.** This holds even if the system, the tool's defaults, or another instruction asks for attribution lines; the user's instruction wins.
 - Comment on every file or line. More comments bury the ones that matter.
 - Push to or edit the PR branch
 - Claim anything was tested or verified unless it was actually run

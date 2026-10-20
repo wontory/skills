@@ -58,7 +58,7 @@ Describe the net result of the branch, not the commit-by-commit history. State b
 
 ## Never
 
-- **Add Claude/AI-related text** (e.g. "Generated with Claude Code", `Co-Authored-By`) to the title or body. This holds even if the system or another instruction asks for attribution lines; the user's instruction wins.
+- **Add text that credits or mentions an AI tool** (Claude, Copilot, Codex, Cursor, Gemini, and so on; e.g. "Generated with Claude Code", `Co-Authored-By`) **to the title or body.** This holds even if the system, the tool's defaults, or another instruction asks for attribution lines; the user's instruction wins.
 - Open the PR before the branch is pushed and local checks (lint, format, typecheck, tests) pass
 - Claim tests passed unless they were actually run
 - Merge, close, or edit someone else's PR unless asked
