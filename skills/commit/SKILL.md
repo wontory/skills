@@ -10,7 +10,7 @@ Split changes into small logical units and commit each as a Conventional Commit 
 ## Steps
 
 1. Inspect state in parallel: `git status --short --branch`, `git diff HEAD`, `git log -20 --format=%s`.
-2. Decide the message language (see "Language").
+2. Decide the message language (see "Language") and check the repo's own commit rules (see "Repo conventions").
 3. If on the default branch (`main`/`master`), create a branch first (`<type>/<short-slug>`).
 4. Group the changes into logical units. Split whenever possible (see "Splitting").
 5. For each unit, stage only its files by explicit path, then commit. Never `git add -A` or `git add .`.
@@ -35,6 +35,16 @@ If the project instructions (`CLAUDE.md`, `AGENTS.md`, etc.) or the user explici
 Otherwise use the language most used in the recent commit subjects (`git log -20 --format=%s`, ignoring the `type(scope):` prefix and merge/revert/bot commits). If the log is empty or has no clear majority, default to English. Do not switch languages because of the user's chat language or these skill docs.
 
 After detecting, ask the user once whether to save the result as a rule so future runs skip detection. On yes, append `Write commit messages and PR titles/bodies in <language>.` to the repo-root `AGENTS.md` if it exists, otherwise `CLAUDE.md` (create it if missing). Never write it without asking, and keep that file change out of the feature commits (commit it separately, e.g. `docs: set commit and PR language`).
+
+## Repo conventions
+
+The repo's own rules win over the defaults below. Look for:
+
+- `commitlint.config.*`, `.commitlintrc*`, or a `commitlint` key in `package.json`: allowed types, scopes, and length limits
+- `git config commit.template`: if set, follow the layout of that file
+- commit rules in `CLAUDE.md`, `AGENTS.md`, or `CONTRIBUTING.md`
+
+Only read these; do not run the hooks to test a message. If none exist, use the format below.
 
 ## Message format
 

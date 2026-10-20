@@ -14,7 +14,7 @@ Open a GitHub pull request with the `gh` CLI. Write the title and body in the la
 3. Understand the **whole** branch, not just the last commit: `git log <base>..HEAD --oneline` and `git diff <base>...HEAD`.
 4. Decide the title and body language (see "Language").
 5. Push with upstream if needed: `git push -u origin HEAD`. Never force-push unless asked.
-6. If `.github/pull_request_template.md` exists, fill it in instead of using the body format below.
+6. Look for a PR template (see "Template"). If one exists, fill it in instead of using the body format below.
 7. Create the PR with `gh pr create --base <base> --title ... --body "$(cat <<'EOF' ... EOF)"`. Add `--draft` if the user wants a draft.
 8. Return the PR URL.
 
@@ -26,9 +26,13 @@ Otherwise use the language most used in the titles of the repo's recent PRs (`gh
 
 After detecting, ask the user once whether to save the result as a rule so future runs skip detection. On yes, append `Write commit messages and PR titles/bodies in <language>.` to the repo-root `AGENTS.md` if it exists, otherwise `CLAUDE.md` (create it if missing). Never write it without asking, and commit that file change separately from the PR's feature commits.
 
+## Template
+
+Search these places, ignoring case: `.github/pull_request_template.md`, `docs/pull_request_template.md`, `pull_request_template.md` in the repo root, and the files in `.github/PULL_REQUEST_TEMPLATE/`. If there are several templates, pick the one that fits the change; ask the user if it is unclear. Keep the template's headings and order, and fill every section (write "N/A" where it does not apply) instead of deleting any.
+
 ## Title
 
-Conventional Commits format, written in the chosen language: `<type>(<scope>): <subject>`, about 50 characters, no trailing period. Keep `type` in English. For a single-commit PR, reuse the commit subject. The subject must say concretely what the PR does; avoid vague words like "update", "fix stuff", "changes" (or their equivalents in the chosen language).
+Conventional Commits format, written in the chosen language: `<type>(<scope>): <subject>`, about 50 characters, no trailing period. Keep `type` in English. If `CLAUDE.md`, `AGENTS.md`, `CONTRIBUTING.md`, or the recent PR titles clearly use another format (for example `[ABC-123] subject`), follow that instead. For a single-commit PR, reuse the commit subject. The subject must say concretely what the PR does; avoid vague words like "update", "fix stuff", "changes" (or their equivalents in the chosen language).
 
 ## Body
 
