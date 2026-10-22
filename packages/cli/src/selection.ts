@@ -8,11 +8,13 @@ export interface SkillGroup {
   name: string
   kind: 'free' | 'paid'
   skills: Skill[]
+  /** Paid group whose skills are unknown until a token is verified. */
+  locked?: boolean
 }
 
 export type Row =
   | { type: 'group'; group: SkillGroup }
-  | { type: 'bulk'; group: SkillGroup }
+  | { type: 'token'; group: SkillGroup }
   | { type: 'skill'; group: SkillGroup; skill: Skill }
 
 export interface SelectionState {
@@ -20,14 +22,29 @@ export interface SelectionState {
   cursor: number
   expanded: Set<string>
   selected: Map<string, Set<string>>
+  /** Token text typed so far, per locked group. */
+  input: Map<string, string>
+  /** Groups whose token is being verified. */
+  busy: Set<string>
+  errors: Map<string, string>
 }
 
 export function createSelection(groups: SkillGroup[]): SelectionState {
+  // Paid groups that are already verified (token passed as a flag) start fully selected
+  const selected = new Map<string, Set<string>>()
+  for (const group of groups) {
+    if (group.kind === 'paid' && !group.locked && group.skills.length > 0) {
+      selected.set(group.id, new Set(group.skills.map((s) => s.id)))
+    }
+  }
   return {
     groups,
     cursor: 0,
     expanded: new Set(),
-    selected: new Map(),
+    selected,
+    input: new Map(),
+    busy: new Set(),
+    errors: new Map(),
   }
 }
 
@@ -35,8 +52,10 @@ export function rows(state: SelectionState): Row[] {
   const result: Row[] = []
   for (const group of state.groups) {
     result.push({ type: 'group', group })
-    if (state.expanded.has(group.id) && group.skills.length > 0) {
-      result.push({ type: 'bulk', group })
+    if (!state.expanded.has(group.id)) continue
+    if (group.locked) {
+      result.push({ type: 'token', group })
+    } else {
       for (const skill of group.skills) {
         result.push({ type: 'skill', group, skill })
       }
@@ -87,6 +106,10 @@ export function expand(state: SelectionState, open?: boolean): void {
 
   if (shouldOpen) {
     state.expanded.add(group.id)
+    if (group.locked) {
+      const tokenIndex = rows(state).findIndex((r) => r.type === 'token' && r.group.id === group.id)
+      if (tokenIndex !== -1) state.cursor = tokenIndex
+    }
   } else {
     state.expanded.delete(group.id)
     const newRows = rows(state)
@@ -106,7 +129,13 @@ export function toggle(state: SelectionState): void {
 
   const group = currentRow.group
 
+  if (currentRow.type === 'token') return
+
   if (currentRow.type === 'group') {
+    if (group.locked) {
+      expand(state, true)
+      return
+    }
     const status = groupStatus(state, group.id)
     if (status === 'all' || status === 'partial') {
       state.selected.delete(group.id)
@@ -115,18 +144,6 @@ export function toggle(state: SelectionState): void {
       for (const skill of group.skills) set.add(skill.id)
       state.selected.set(group.id, set)
       state.expanded.add(group.id)
-    }
-    return
-  }
-
-  if (currentRow.type === 'bulk') {
-    const status = groupStatus(state, group.id)
-    if (status === 'all') {
-      state.selected.delete(group.id)
-    } else {
-      const set = new Set<string>()
-      for (const skill of group.skills) set.add(skill.id)
-      state.selected.set(group.id, set)
     }
     return
   }
@@ -147,4 +164,16 @@ export function toggle(state: SelectionState): void {
       set.add(skill.id)
     }
   }
+}
+
+export function unlock(state: SelectionState, groupId: string, skills: Skill[]): void {
+  const group = state.groups.find((g) => g.id === groupId)
+  if (!group) return
+  group.skills = skills
+  group.locked = false
+  state.selected.set(groupId, new Set(skills.map((s) => s.id)))
+  state.input.delete(groupId)
+  state.errors.delete(groupId)
+  const index = rows(state).findIndex((r) => r.type === 'group' && r.group.id === groupId)
+  if (index !== -1) state.cursor = index
 }

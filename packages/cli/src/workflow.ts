@@ -14,11 +14,15 @@ export interface WorkflowOptions {
 export interface WorkflowContext {
   options: WorkflowOptions
   isInteractive: boolean
-  selectSkills: (groups: SkillGroup[]) => Promise<Map<string, string[]>>
-  promptToken: (source: PaidSource) => Promise<string | undefined>
-  promptRetryOrExclude: (source: PaidSource, error: Error) => Promise<'retry' | 'exclude'>
+  selectSkills: (
+    groups: SkillGroup[],
+    loadCatalog: (groupId: string, token: string) => Promise<Skill[]>,
+  ) => Promise<Map<string, string[]>>
+  promptScope: () => Promise<'project' | 'global'>
+  /** Resolves to agent ids, or `['*']` for all agents. */
+  promptAgents: () => Promise<string[]>
   discoverFree: (source: FreeSource) => Promise<Skill[]>
-  authenticate: (source: PaidSource, token: string, selected: string[]) => Promise<string[]>
+  fetchPaidCatalog: (source: PaidSource, token: string) => Promise<Skill[]>
   run: (cmd: string, args: string[]) => Promise<number>
   log: {
     step: (msg: string) => void
@@ -44,7 +48,29 @@ export async function runWorkflow(ctx: WorkflowContext): Promise<number> {
     }
   }
 
-  // 2. Build selection tree or default non-interactive plan
+  // 2. Paid sources: tokens passed as flags are verified now; others are entered in the tree
+  const paidCatalogs = new Map<string, Skill[]>()
+  const paidTokens = new Map<string, string>()
+  const loadPaid = async (source: PaidSource, token: string): Promise<Skill[]> => {
+    const skills = await ctx.fetchPaidCatalog(source, token)
+    paidCatalogs.set(source.name, skills)
+    paidTokens.set(source.name, token)
+    return skills
+  }
+
+  if (!ctx.options.skipPaid) {
+    for (const source of PAID_SOURCES) {
+      const token = ctx.options[source.option]
+      if (!token) continue
+      try {
+        await loadPaid(source, token)
+      } catch (err: unknown) {
+        ctx.log.error(err instanceof Error ? err.message : String(err))
+      }
+    }
+  }
+
+  // 3. Build selection tree or default non-interactive plan
   let selectedMap: Map<string, string[]>
   if (ctx.isInteractive && !ctx.options.yes) {
     const groups: SkillGroup[] = []
@@ -58,36 +84,36 @@ export async function runWorkflow(ctx: WorkflowContext): Promise<number> {
     }
     if (!ctx.options.skipPaid) {
       for (const source of PAID_SOURCES) {
+        const skills = paidCatalogs.get(source.name)
         groups.push({
           id: source.name,
           name: source.name,
           kind: 'paid',
-          skills: source.skills,
+          skills: skills ?? [],
+          locked: !skills,
         })
       }
     }
-    selectedMap = await ctx.selectSkills(groups)
+    selectedMap = await ctx.selectSkills(groups, (id, token) =>
+      loadPaid(
+        PAID_SOURCES.find((s) => s.name === id)!,
+        token,
+      ),
+    )
   } else {
     selectedMap = new Map<string, string[]>()
     for (const source of FREE_SOURCES) {
       const skills = freeSkillsMap.get(source.name) || []
-      if (skills.length > 0) {
-        selectedMap.set(
-          source.name,
-          skills.map((s) => s.id),
-        )
-      }
+      selectedMap.set(
+        source.name,
+        skills.map((s) => s.id),
+      )
     }
-    if (!ctx.options.skipPaid) {
-      for (const source of PAID_SOURCES) {
-        const token = ctx.options[source.option]
-        if (token) {
-          selectedMap.set(
-            source.name,
-            source.skills.map((s) => s.id),
-          )
-        }
-      }
+    for (const [name, skills] of paidCatalogs) {
+      selectedMap.set(
+        name,
+        skills.map((s) => s.id),
+      )
     }
   }
 
@@ -103,59 +129,14 @@ export async function runWorkflow(ctx: WorkflowContext): Promise<number> {
     return 0
   }
 
-  // 3. Authenticate paid sources upfront before any installation
-  const verifiedPaidIds = new Map<string, string[]>()
-  const paidTokens = new Map<string, string>()
+  // 4. Resolve where to install, asking once for every source
+  const canAsk = ctx.isInteractive && !ctx.options.yes
+  const isGlobal = ctx.options.global || (canAsk ? (await ctx.promptScope()) === 'global' : false)
+  const hasFree = FREE_SOURCES.some((s) => selectedMap.has(s.name))
+  let agents = ctx.options.agent?.split(/[\s,]+/).filter(Boolean)
+  if (!agents?.length) agents = canAsk && hasFree ? await ctx.promptAgents() : ['*']
 
-  if (!ctx.options.skipPaid) {
-    for (const source of PAID_SOURCES) {
-      const selected = selectedMap.get(source.name)
-      if (!selected || selected.length === 0) continue
-
-      let authenticated = false
-      let token = ctx.options[source.option]
-
-      while (!authenticated) {
-        if (!token) {
-          if (!ctx.isInteractive || ctx.options.yes) {
-            selectedMap.delete(source.name)
-            break
-          }
-          const prompted = await ctx.promptToken(source)
-          if (!prompted) {
-            selectedMap.delete(source.name)
-            break
-          }
-          token = prompted
-        }
-
-        try {
-          const verifiedIds = await ctx.authenticate(source, token, selected)
-          verifiedPaidIds.set(source.name, verifiedIds)
-          paidTokens.set(source.name, token)
-          authenticated = true
-        } catch (err: unknown) {
-          const errorObj = err instanceof Error ? err : new Error(String(err))
-          ctx.log.error(errorObj.message)
-
-          if (!ctx.isInteractive || ctx.options.yes) {
-            selectedMap.delete(source.name)
-            break
-          }
-
-          const choice = await ctx.promptRetryOrExclude(source, errorObj)
-          if (choice === 'retry') {
-            token = undefined // prompt again
-          } else {
-            selectedMap.delete(source.name)
-            break
-          }
-        }
-      }
-    }
-  }
-
-  // 4. Install selected sources
+  // 5. Install selected sources
   const results: { name: string; status: 'ok' | 'failed' | 'skipped' }[] = []
 
   for (const source of FREE_SOURCES) {
@@ -166,15 +147,7 @@ export async function runWorkflow(ctx: WorkflowContext): Promise<number> {
     }
 
     ctx.log.step(source.name)
-    const scopeArgs = [
-      ...(ctx.options.global ? ['-g'] : []),
-      ...(ctx.options.agent
-        ? ['-a', ctx.options.agent]
-        : ctx.isInteractive && !ctx.options.yes
-          ? []
-          : ['-a', '*']),
-      ...(ctx.options.yes ? ['-y'] : []),
-    ]
+    const scopeArgs = [...(isGlobal ? ['-g'] : []), '-a', ...agents, '-y']
     const skillArgs = selected.flatMap((s) => ['-s', s])
     const code = await ctx.run(npxCmd, [
       '-y',
@@ -188,9 +161,9 @@ export async function runWorkflow(ctx: WorkflowContext): Promise<number> {
   }
 
   for (const source of PAID_SOURCES) {
-    const verifiedIds = verifiedPaidIds.get(source.name)
+    const selectedIds = selectedMap.get(source.name)
     const token = paidTokens.get(source.name)
-    if (!verifiedIds || verifiedIds.length === 0 || !token) {
+    if (!selectedIds || selectedIds.length === 0 || !token) {
       results.push({ name: source.name, status: 'skipped' })
       continue
     }
@@ -200,9 +173,9 @@ export async function runWorkflow(ctx: WorkflowContext): Promise<number> {
       '-y',
       source.installer,
       `--token=${token}`,
-      ...(ctx.options.global ? ['-g'] : []),
+      isGlobal ? '-g' : '--project',
       ...(ctx.options.yes ? ['-y'] : []),
-      ...verifiedIds,
+      ...selectedIds,
     ]
     const code = await ctx.run(npxCmd, paidArgs)
     results.push({ name: source.name, status: code === 0 ? 'ok' : 'failed' })

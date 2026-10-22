@@ -1,5 +1,6 @@
 import readline from 'node:readline'
 import {
+  type Skill,
   type SkillGroup,
   type SelectionState,
   createSelection,
@@ -9,6 +10,7 @@ import {
   move,
   expand,
   toggle,
+  unlock,
 } from './selection.ts'
 
 const isNoColor = Boolean(process.env.NO_COLOR || !process.stdout.isTTY)
@@ -20,6 +22,7 @@ const colors = {
   cyan: isNoColor ? '' : '\x1b[36m',
   green: isNoColor ? '' : '\x1b[32m',
   yellow: isNoColor ? '' : '\x1b[33m',
+  red: isNoColor ? '' : '\x1b[31m',
   magenta: isNoColor ? '' : '\x1b[35m',
 }
 
@@ -74,22 +77,21 @@ export function renderTree(state: SelectionState, width = 80, height = 24): stri
             : '[ ]'
       const isExpanded = state.expanded.has(row.group.id)
       const arrow = isExpanded ? '▼' : '▶'
-      const tag =
-        row.group.kind === 'free'
-          ? `${colors.green}(free)${colors.reset}`
-          : `${colors.yellow}(paid)${colors.reset}`
+      const tag = row.group.kind === 'paid' ? ` ${colors.yellow}(paid)${colors.reset}` : ''
       const name = isCurrent ? `${colors.bold}${row.group.name}${colors.reset}` : row.group.name
-      lines.push(`${pointer}${arrow} ${icon} ${name} ${tag}`)
-    } else if (row.type === 'bulk') {
-      const status = groupStatus(state, row.group.id)
-      const icon =
-        status === 'all'
-          ? `${colors.green}[x]${colors.reset}`
-          : status === 'partial'
-            ? `${colors.yellow}[-]${colors.reset}`
-            : '[ ]'
-      const label = `${colors.dim}select all / deselect all${colors.reset}`
-      lines.push(`${pointer}    ${icon} ${label}`)
+      lines.push(`${pointer}${arrow} ${icon} ${name}${tag}`)
+    } else if (row.type === 'token') {
+      const id = row.group.id
+      const typed = '*'.repeat(state.input.get(id)?.length ?? 0)
+      const body = state.busy.has(id)
+        ? `${colors.dim}verifying...${colors.reset}`
+        : `${typed}${isCurrent ? `${colors.cyan}_${colors.reset}` : ''}`
+      lines.push(`${pointer}    token: ${body}`)
+      const error = state.errors.get(id)
+      if (error) lines.push(`      ${colors.red}${error}${colors.reset}`)
+      else if (!typed && !state.busy.has(id)) {
+        lines.push(`      ${colors.dim}type your token, then press enter${colors.reset}`)
+      }
     } else if (row.type === 'skill') {
       const set = state.selected.get(row.group.id)
       const isSelected = Boolean(set?.has(row.skill.id))
@@ -107,7 +109,10 @@ export function renderTree(state: SelectionState, width = 80, height = 24): stri
   return lines.join('\n')
 }
 
-export function selectSkills(groups: SkillGroup[]): Promise<Map<string, string[]>> {
+export function selectSkills(
+  groups: SkillGroup[],
+  loadCatalog: (groupId: string, token: string) => Promise<Skill[]>,
+): Promise<Map<string, string[]>> {
   if (!process.stdin.isTTY || !process.stdout.isTTY) {
     const state = createSelection(groups)
     return Promise.resolve(selectedSkills(state))
@@ -119,19 +124,15 @@ export function selectSkills(groups: SkillGroup[]): Promise<Map<string, string[]
     const stdout = process.stdout
 
     let lastLineCount = 0
-
-    const rl = readline.createInterface({
-      input: stdin,
-      escapeCodeTimeout: 50,
-    })
+    let done = false
 
     const cleanup = () => {
+      done = true
       stdin.removeListener('keypress', onKeyPress)
       if (stdin.isTTY && typeof stdin.setRawMode === 'function') {
         stdin.setRawMode(false)
       }
       stdin.pause()
-      rl.close()
       stdout.write('\x1b[?25h') // Show cursor
     }
 
@@ -148,13 +149,53 @@ export function selectSkills(groups: SkillGroup[]): Promise<Map<string, string[]
       lastLineCount = content.split('\n').length
     }
 
-    const onKeyPress = (_str: string | undefined, key: readline.Key) => {
+    const submitToken = async (groupId: string) => {
+      const token = (state.input.get(groupId) ?? '').trim()
+      if (!token) return
+      state.busy.add(groupId)
+      state.errors.delete(groupId)
+      draw()
+      try {
+        const skills = await loadCatalog(groupId, token)
+        if (done) return
+        unlock(state, groupId, skills)
+      } catch (err: unknown) {
+        if (done) return
+        state.errors.set(groupId, err instanceof Error ? err.message : String(err))
+        state.input.set(groupId, '')
+      }
+      state.busy.delete(groupId)
+      draw()
+    }
+
+    const onKeyPress = (str: string | undefined, key: readline.Key) => {
       if (!key) return
 
       if (key.ctrl && key.name === 'c') {
         cleanup()
         stdout.write('\n')
         process.exit(130)
+      }
+
+      const current = rows(state)[state.cursor]
+      if (current?.type === 'token') {
+        const id = current.group.id
+        if (state.busy.has(id)) return
+        if (key.name === 'return' || key.name === 'enter') {
+          void submitToken(id)
+          return
+        }
+        if (key.name === 'backspace') {
+          state.input.set(id, (state.input.get(id) ?? '').slice(0, -1))
+          draw()
+          return
+        }
+        if (str && /^[ -~]+$/.test(str)) {
+          state.input.set(id, (state.input.get(id) ?? '') + str)
+          state.errors.delete(id)
+          draw()
+          return
+        }
       }
 
       if (key.name === 'up') {
@@ -173,13 +214,15 @@ export function selectSkills(groups: SkillGroup[]): Promise<Map<string, string[]
         expand(state, false)
         draw()
       } else if (key.name === 'return' || key.name === 'enter') {
+        if (state.busy.size > 0) return
         cleanup()
         stdout.write('\n')
         resolve(selectedSkills(state))
       }
     }
 
-    readline.emitKeypressEvents(stdin, rl)
+    readline.emitKeypressEvents(stdin)
+    stdin.on('keypress', onKeyPress)
     if (stdin.isTTY && typeof stdin.setRawMode === 'function') {
       stdin.setRawMode(true)
     }

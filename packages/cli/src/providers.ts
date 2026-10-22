@@ -64,16 +64,11 @@ export async function discoverFree(source: FreeSource, fetcher: Fetcher = fetch)
   return skills
 }
 
-export async function authenticate(
+export async function fetchPaidCatalog(
   source: PaidSource,
   token: string,
-  selected: string[],
   fetcher: Fetcher = fetch,
-): Promise<string[]> {
-  if (selected.length === 0) {
-    return []
-  }
-
+): Promise<Skill[]> {
   const url = new URL(source.endpoint)
   url.searchParams.set('token', token)
 
@@ -98,17 +93,5 @@ export async function authenticate(
     throw new Error(`Invalid response from ${source.name}`)
   }
 
-  const remoteSkills = data.skills || []
-  const resolvedIds: string[] = []
-  for (const name of selected) {
-    const found = remoteSkills.find((s) => s.name === name || s.id === name)
-    if (!found) {
-      throw new Error(
-        `Selected skill "${name}" not found in remote catalog for ${source.name} (catalog drift)`,
-      )
-    }
-    resolvedIds.push(found.id)
-  }
-
-  return resolvedIds
+  return (data.skills || []).map((s) => ({ id: s.id, name: s.name || s.id }))
 }

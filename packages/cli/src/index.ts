@@ -1,11 +1,11 @@
 #!/usr/bin/env node
-import { cancel, intro, isCancel, log, outro, password, select } from '@clack/prompts'
+import { cancel, intro, isCancel, log, multiselect, outro, select } from '@clack/prompts'
 import { cac } from 'cac'
 import { runWorkflow, type WorkflowContext } from './workflow.ts'
 import { selectSkills } from './terminal.ts'
-import { discoverFree, authenticate } from './providers.ts'
+import { discoverFree, fetchPaidCatalog } from './providers.ts'
 import { runSubprocess } from './runner.ts'
-import type { PaidSource } from './sources.ts'
+import { AGENTS } from './agents.ts'
 
 const cli = cac('wontory-skills')
 cli
@@ -35,34 +35,37 @@ const ctx: WorkflowContext = {
   },
   isInteractive,
   selectSkills,
-  promptToken: async (source: PaidSource) => {
-    const val = await password({
-      message: `${source.name} token`,
-      validate: (v) => (v?.trim() ? undefined : 'Token is required'),
-    })
-    if (isCancel(val)) {
-      cancel('Operation cancelled.')
-      process.exit(130)
-    }
-    return val.trim()
-  },
-  promptRetryOrExclude: async (source: PaidSource, err: Error) => {
-    log.error(`[${source.name}] ${err.message}`)
+  promptScope: async () => {
     const choice = await select({
-      message: `Authentication failed for ${source.name}. How would you like to proceed?`,
+      message: 'Where should the skills be installed?',
       options: [
-        { value: 'retry', label: 'Retry token entry' },
-        { value: 'exclude', label: 'Exclude source and continue' },
+        { value: 'project', label: 'Project', hint: 'current folder' },
+        { value: 'global', label: 'Global', hint: 'available in every project' },
       ],
     })
     if (isCancel(choice)) {
       cancel('Operation cancelled.')
       process.exit(130)
     }
-    return choice as 'retry' | 'exclude'
+    return choice as 'project' | 'global'
+  },
+  promptAgents: async () => {
+    const choice = await multiselect({
+      message: 'Which agents should get the skills? (space to toggle)',
+      options: [
+        { value: '*', label: 'All agents' },
+        ...AGENTS.map((a) => ({ value: a.id, label: a.name })),
+      ],
+      required: true,
+    })
+    if (isCancel(choice)) {
+      cancel('Operation cancelled.')
+      process.exit(130)
+    }
+    return choice.includes('*') ? ['*'] : choice
   },
   discoverFree,
-  authenticate,
+  fetchPaidCatalog,
   run: runSubprocess,
   log,
 }
