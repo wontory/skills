@@ -1,8 +1,11 @@
 #!/usr/bin/env node
-import { spawn } from 'node:child_process'
-import { cancel, confirm, intro, isCancel, log, outro, password } from '@clack/prompts'
+import { cancel, intro, isCancel, log, outro, password, select } from '@clack/prompts'
 import { cac } from 'cac'
-import { FREE_SOURCES, PAID_SOURCES, type PaidSource } from './sources.ts'
+import { runWorkflow, type WorkflowContext } from './workflow.ts'
+import { selectSkills } from './terminal.ts'
+import { discoverFree, authenticate } from './providers.ts'
+import { runSubprocess } from './runner.ts'
+import type { PaidSource } from './sources.ts'
 
 const cli = cac('wontory-skills')
 cli
@@ -17,79 +20,53 @@ cli
 const { options } = cli.parse()
 if (options.help) process.exit(0)
 
-// cmd.exe needs a shell to run npx.cmd, so quote args ourselves there.
-const isWin = process.platform === 'win32'
-const quote = (arg: string) => (isWin ? `"${arg.replaceAll('"', '""')}"` : arg)
-
-function run(args: string[]): Promise<number> {
-  return new Promise((resolve) => {
-    const child = spawn('npx', ['-y', ...args.map(quote)], { stdio: 'inherit', shell: isWin })
-    child.on('error', () => resolve(1))
-    child.on('close', (code) => resolve(code ?? 1))
-  })
-}
-
-function abortIfCancelled<T>(value: T | symbol): T {
-  if (isCancel(value)) {
-    cancel('Cancelled')
-    process.exit(130)
-  }
-  return value as T
-}
-
-/** Decide up front, before anything is installed, whether to install a paid source. */
-async function resolveToken(source: PaidSource): Promise<string | undefined> {
-  if (options.skipPaid) return undefined
-  const flagged: string | undefined = options[source.option]
-  if (flagged) return flagged
-  if (options.yes || !process.stdin.isTTY) return undefined
-  const install = abortIfCancelled<boolean>(
-    await confirm({ message: `Install ${source.name} (paid)?`, initialValue: false }),
-  )
-  if (!install) return undefined
-  const token = abortIfCancelled<string>(
-    await password({
-      message: `${source.name} token`,
-      validate: (value) => (value?.trim() ? undefined : 'Token is required'),
-    }),
-  )
-  return token.trim()
-}
+const isInteractive = Boolean(process.stdin.isTTY && process.stdout.isTTY)
 
 intro('wontory-skills')
 
-const tokens = new Map<string, string | undefined>()
-for (const source of PAID_SOURCES) tokens.set(source.name, await resolveToken(source))
-
-// Interactive: let `skills add` show its own skill/agent pickers. Otherwise install everything.
-const interactive = !options.yes && process.stdin.isTTY
-const scopeArgs = [
-  ...(options.global ? ['-g'] : []),
-  ...(options.agent ? ['-a', options.agent] : interactive ? [] : ['-a', '*']),
-  ...(interactive ? [] : ['-s', '*', '-y']),
-]
-const results: { name: string; status: 'ok' | 'failed' | 'skipped' }[] = []
-
-for (const source of FREE_SOURCES) {
-  log.step(source.name)
-  const code = await run(['skills', 'add', source.repo, ...scopeArgs])
-  results.push({ name: source.name, status: code === 0 ? 'ok' : 'failed' })
+const ctx: WorkflowContext = {
+  options: {
+    global: options.global,
+    agent: options.agent,
+    yes: options.yes,
+    skipPaid: options.skipPaid,
+    animationsdevToken: options.animationsdevToken,
+    aiforuiToken: options.aiforuiToken,
+  },
+  isInteractive,
+  selectSkills,
+  promptToken: async (source: PaidSource) => {
+    const val = await password({
+      message: `${source.name} token`,
+      validate: (v) => (v?.trim() ? undefined : 'Token is required'),
+    })
+    if (isCancel(val)) {
+      cancel('Operation cancelled.')
+      process.exit(130)
+    }
+    return val.trim()
+  },
+  promptRetryOrExclude: async (source: PaidSource, err: Error) => {
+    log.error(`[${source.name}] ${err.message}`)
+    const choice = await select({
+      message: `Authentication failed for ${source.name}. How would you like to proceed?`,
+      options: [
+        { value: 'retry', label: 'Retry token entry' },
+        { value: 'exclude', label: 'Exclude source and continue' },
+      ],
+    })
+    if (isCancel(choice)) {
+      cancel('Operation cancelled.')
+      process.exit(130)
+    }
+    return choice as 'retry' | 'exclude'
+  },
+  discoverFree,
+  authenticate,
+  run: runSubprocess,
+  log,
 }
 
-for (const source of PAID_SOURCES) {
-  const token = tokens.get(source.name)
-  if (!token) {
-    log.info(`${source.name} — skipped`)
-    results.push({ name: source.name, status: 'skipped' })
-    continue
-  }
-  log.step(source.name)
-  const code = await run([source.installer, `--token=${token}`])
-  results.push({ name: source.name, status: code === 0 ? 'ok' : 'failed' })
-}
-
-const mark = { ok: '✔', failed: '✖', skipped: '–' }
-const failed = results.some((r) => r.status === 'failed')
-log.message(results.map((r) => `${mark[r.status]} ${r.name} (${r.status})`).join('\n'))
-outro(failed ? 'Finished with errors' : 'Done')
-process.exit(failed ? 1 : 0)
+const exitCode = await runWorkflow(ctx)
+outro(exitCode === 0 ? 'Done' : 'Finished with errors')
+process.exit(exitCode)
