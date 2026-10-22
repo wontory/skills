@@ -120,11 +120,18 @@ export function selectSkills(groups: SkillGroup[]): Promise<Map<string, string[]
 
     let lastLineCount = 0
 
+    const rl = readline.createInterface({
+      input: stdin,
+      escapeCodeTimeout: 50,
+    })
+
     const cleanup = () => {
       stdin.removeListener('keypress', onKeyPress)
       if (stdin.isTTY && typeof stdin.setRawMode === 'function') {
         stdin.setRawMode(false)
       }
+      stdin.pause()
+      rl.close()
       stdout.write('\x1b[?25h') // Show cursor
     }
 
@@ -172,10 +179,11 @@ export function selectSkills(groups: SkillGroup[]): Promise<Map<string, string[]
       }
     }
 
-    readline.emitKeypressEvents(stdin)
+    readline.emitKeypressEvents(stdin, rl)
     if (stdin.isTTY && typeof stdin.setRawMode === 'function') {
       stdin.setRawMode(true)
     }
+    stdin.resume()
     stdout.write('\x1b[?25l') // Hide cursor
     draw()
   })
