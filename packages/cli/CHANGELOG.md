@@ -1,5 +1,11 @@
 # @wontory/skills
 
+## 0.5.1
+
+### Patch Changes
+
+- Fix unsettled top-level await in terminal selection and Windows subprocess spawn
+
 ## 0.5.0
 
 ### Minor Changes
