@@ -1,5 +1,11 @@
 # @wontory/skills
 
+## 0.5.0
+
+### Minor Changes
+
+- Add interactive terminal tree skill selection and phased authentication workflow
+
 ## 0.4.1
 
 ### Patch Changes
