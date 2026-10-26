@@ -1,0 +1,2 @@
+# Keep LF everywhere so the formatter check agrees on Windows checkouts too.
+* text=auto eol=lf
