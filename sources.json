@@ -1,0 +1,40 @@
+{
+  "$schema": "./packages/cli/sources.schema.json",
+  "free": [
+    {
+      "name": "wontory/skills",
+      "repo": "wontory/skills",
+      "description": "Git workflow skills: commit, pr, review, self-review",
+      "recommended": true
+    },
+    {
+      "name": "obra/superpowers",
+      "repo": "obra/superpowers",
+      "description": "Process skills: brainstorming, TDD, debugging, planning",
+      "recommended": [
+        "brainstorming",
+        "systematic-debugging",
+        "test-driven-development",
+        "verification-before-completion"
+      ]
+    }
+  ],
+  "paid": [
+    {
+      "id": "animationsdev",
+      "name": "animations.dev",
+      "installer": "@animationsdev/install",
+      "endpoint": "https://animations.dev/api/install",
+      "tokenUrl": "https://animations.dev",
+      "description": "Web animation skills from animations.dev"
+    },
+    {
+      "id": "aiforui",
+      "name": "aiforui.dev",
+      "installer": "@aiforui/install",
+      "endpoint": "https://aiforui.dev/api/install",
+      "tokenUrl": "https://aiforui.dev",
+      "description": "Design engineering skills from aiforui.dev"
+    }
+  ]
+}
