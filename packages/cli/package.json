@@ -1,6 +1,6 @@
 {
   "name": "@wontory/skills",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "bin": {
     "wontory-skills": "dist/index.js"
   },
@@ -16,11 +16,12 @@
     "prepublishOnly": "bun run build"
   },
   "devDependencies": {
+    "@clack/core": "^1.5.1",
     "@clack/prompts": "^1.8.1",
     "@types/node": "^26.6.5",
     "cac": "^7.1.0"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20.19"
   }
 }

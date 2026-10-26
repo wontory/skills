@@ -15,6 +15,9 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
+      # Git for Windows defaults to core.autocrlf=true, which would check files out as CRLF
+      # and fail the formatter check. The repo is LF; keep the runner's checkout LF too.
+      - run: git config --global core.autocrlf false
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
       - uses: actions/setup-node@v4
@@ -22,6 +25,8 @@ jobs:
           node-version: 22
           registry-url: https://registry.npmjs.org
       - run: bun install --frozen-lockfile
+      - run: bun run lint
+      - run: bun run fmt:check
       - run: bun run typecheck
       - uses: changesets/action@v1
         with:

@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      # Git for Windows defaults to core.autocrlf=true, which would check files out as CRLF
+      # and fail the formatter check. The repo is LF; keep the runner's checkout LF too.
+      - run: git config --global core.autocrlf false
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun run lint
+      - run: bun run fmt:check
+      - run: bun run typecheck
+      - run: bun run build
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.19
+      - name: Smoke test the built CLI on the oldest supported Node
+        run: |
+          node --version
+          node packages/cli/dist/index.js --help
+          node packages/cli/dist/index.js --no-remote -s commit --dry-run -y --skip-paid

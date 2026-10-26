@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "wontory-skills source catalog",
+  "type": "object",
+  "properties": {
+    "free": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "repo"],
+        "properties": {
+          "name": { "type": "string" },
+          "repo": {
+            "type": "string",
+            "description": "GitHub owner/repo passed to `npx skills add`"
+          },
+          "description": { "type": "string" },
+          "recommended": {
+            "description": "Skill ids preselected for first-time users; `true` means all",
+            "oneOf": [{ "type": "boolean" }, { "type": "array", "items": { "type": "string" } }]
+          }
+        }
+      }
+    },
+    "paid": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "installer", "endpoint"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(-[a-z][a-z0-9]*)*$",
+            "description": "Derives the `--<id>-token` flag and `<ID>_TOKEN` env var"
+          },
+          "name": { "type": "string" },
+          "installer": {
+            "type": "string",
+            "description": "npm package run with `npx <installer> --token=<token>`"
+          },
+          "endpoint": {
+            "type": "string",
+            "description": "Returns `{ skills: [{ id, name?, description? }] }` when called with `?token=`"
+          },
+          "description": { "type": "string" },
+          "tokenUrl": { "type": "string", "description": "Where a user gets a token (https)" }
+        }
+      }
+    }
+  }
+}
