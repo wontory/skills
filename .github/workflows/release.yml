@@ -22,6 +22,8 @@ jobs:
           node-version: 22
           registry-url: https://registry.npmjs.org
       - run: bun install --frozen-lockfile
+      - run: bun run lint
+      - run: bun run fmt:check
       - run: bun run typecheck
       - uses: changesets/action@v1
         with:
