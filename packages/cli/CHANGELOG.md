@@ -1,5 +1,11 @@
 # @wontory/skills
 
+## 0.7.1
+
+### Patch Changes
+
+- [#11](https://github.com/wontory/skills/pull/11) [`0849457`](https://github.com/wontory/skills/commit/0849457d2695d30a1c3f799b1873943f50359f0f) Thanks [@wontory](https://github.com/wontory)! - Add GoogleChrome/modern-web-guidance as a free source in the bundled catalog
+
 ## 0.7.0
 
 ### Minor Changes
