@@ -1,6 +1,10 @@
 {
   "name": "@wontory/skills",
   "version": "0.7.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wontory/skills.git"
+  },
   "bin": {
     "wontory-skills": "dist/index.js"
   },
