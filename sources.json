@@ -17,6 +17,12 @@
         "test-driven-development",
         "verification-before-completion"
       ]
+    },
+    {
+      "name": "GoogleChrome/modern-web-guidance",
+      "repo": "GoogleChrome/modern-web-guidance",
+      "description": "Modern web platform standards, APIs, and best practices from Chrome, Edge, Firefox & MDN",
+      "recommended": ["modern-web-guidance"]
     }
   ],
   "paid": [
