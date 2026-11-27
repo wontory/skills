@@ -1,6 +1,6 @@
 # skills
 
-Agent skills for Claude Code, Codex, and friends, plus `@wontory/skills`: a CLI that installs skills from several sources (this repo, [obra/superpowers](https://github.com/obra/superpowers), and paid providers) in one pass.
+Agent skills for Claude Code, Codex, and friends, plus `@wontory/skills`: a CLI that installs skills from several sources (this repo, [obra/superpowers](https://github.com/obra/superpowers), [GoogleChrome/modern-web-guidance](https://github.com/GoogleChrome/modern-web-guidance), and paid providers) in one pass.
 
 ## Install skills
 
