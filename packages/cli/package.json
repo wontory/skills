@@ -1,6 +1,6 @@
 {
   "name": "@wontory/skills",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "bin": {
     "wontory-skills": "dist/index.js"
   },
